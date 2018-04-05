@@ -12,3 +12,19 @@ let rec equal_sets a b =
   else let removeElement l = List.filter (fun x -> x <> List.hd a) l in
        equal_sets (removeElement a) (removeElement b)
 ;;
+
+let rec set_union a b =
+  match a with
+  | [] -> b
+  | f::s -> if not (List.mem f s) && not (List.mem f b)
+            then set_union s (f::b)
+            else set_union s b
+;;
+
+let rec set_intersection a b =
+  match a with
+  | [] -> []
+  | f::s -> if List.mem f b && not (List.mem f s)
+            then f::set_intersection s b
+            else set_intersection s b
+;;
