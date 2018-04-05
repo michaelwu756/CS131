@@ -28,3 +28,11 @@ let rec set_intersection a b =
             then f::set_intersection s b
             else set_intersection s b
 ;;
+
+let rec set_diff a b =
+  match a with
+  | [] -> []
+  | f::s -> if not (List.mem f b) && not (List.mem f s)
+            then f::set_diff s b
+            else set_diff s b
+;;
