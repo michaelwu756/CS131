@@ -1,3 +1,8 @@
+type ('nonterminal, 'terminal) symbol =
+  | N of 'nonterminal
+  | T of 'terminal
+;;
+
 let rec subset a b =
   match a with
   | [] -> true
