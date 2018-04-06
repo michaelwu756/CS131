@@ -59,3 +59,10 @@ let computed_periodic_point eq f p x =
     else computed_periodic_point_helper eq f p (f x) appended in
   computed_periodic_point_helper eq f p x []
 ;;
+
+let while_away s p x =
+  let rec while_away_helper s p x l =
+    if not (p x) then l
+    else while_away_helper s p (s x) (x::l) in
+  List.rev (while_away_helper s p x [])
+;;
