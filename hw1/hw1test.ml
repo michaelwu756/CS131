@@ -17,8 +17,12 @@ let my_set_diff_test0 = equal_sets (set_diff ["a"] ["b"]) ["a"];;
 let my_set_diff_test0 = equal_sets (set_diff [] ["b"]) [];;
 
 let my_computed_fixed_point_test0 = computed_fixed_point (=) (fun x -> x/2 + x/2) 3 = 2;;
+
 let my_computed_periodic_point_test0 = computed_periodic_point (=) (fun x -> if x mod 2 = 0 then x/2 else 3*x+1) 3 234 = 4;;
 
 let my_while_away_test0 = while_away (fun x -> x+3) (fun x -> x<10) 0 = [0;3;6;9];;
-let my_rle_decode_test0 = true;;
+
+let my_rle_decode_test0 = rle_decode [4,"w"] = ["w";"w";"w";"w"];;
+let my_rle_decode_test1 = rle_decode [2,"w";1,"b";] = ["w";"w";"b"];;
+
 let my_filter_blind_alleys_test0 = true;;

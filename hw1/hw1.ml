@@ -66,3 +66,15 @@ let while_away s p x =
     else while_away_helper s p (s x) (x::l) in
   List.rev (while_away_helper s p x [])
 ;;
+
+let rle_decode lp =
+  let rec rle_decode_helper l lp =
+    let rec appendNum prev n v =
+      if n = 0 then prev
+      else appendNum (v::prev) (n-1) v in
+    match lp with
+    | [] -> l
+    | f::s -> (match f with (num,value) -> (let addedList = appendNum l num value in
+                                            rle_decode_helper addedList s)) in
+  List.rev (rle_decode_helper [] lp)
+;;
