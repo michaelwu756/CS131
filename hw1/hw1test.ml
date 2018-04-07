@@ -209,4 +209,6 @@ let my_filter_blind_alleys_test0 =
                            D, [T"d"; N D; N C]])
   = (A, [A, [T"b"; N B];
          B, [T"b"; N B];
-         B, [T"b"]]);;
+         B, [T"b"];
+         C, [T"b"; N B];
+         C, [T"c"]]);;
