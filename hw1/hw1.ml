@@ -78,3 +78,37 @@ let rle_decode lp =
                                             rle_decode_helper addedList s)) in
   List.rev (rle_decode_helper [] lp)
 ;;
+
+let rec check_terminal_or_generating replacement generating_symbols =
+  match replacement with
+  | [] -> true
+  | f::s -> (match f with
+             | T symb -> check_terminal_or_generating s generating_symbols
+             | N symb -> if List.mem symb generating_symbols
+                         then check_terminal_or_generating s generating_symbols
+                         else false)
+;;
+
+let extract_symbols rules =
+  let rec extract_symbols_helper rules return_symbols =
+    match rules with
+    | [] -> return_symbols
+    | f::s -> (match f with (symb, replacement) -> if not (List.mem symb return_symbols)
+                                                   then extract_symbols_helper s (symb::return_symbols)
+                                                   else extract_symbols_helper s return_symbols) in
+  List.rev (extract_symbols_helper rules [])
+;;
+
+let mark_generating rules generating_rules =
+  let rec mark_generating_helper rules generating_symbols return_rules =
+    match rules with
+    | [] -> return_rules
+    | f::s -> (match f with (symb,replacement) -> (if check_terminal_or_generating replacement generating_symbols
+                                                   then mark_generating_helper s generating_symbols (f::return_rules)
+                                                   else mark_generating_helper s generating_symbols return_rules)) in
+  List.rev (mark_generating_helper rules (extract_symbols generating_rules) [])
+;;
+
+let generating_rules g = match g with (start, rules) -> computed_fixed_point (=) (mark_generating rules) [];;
+
+(*let filter_blind_alleys g = true;*)
