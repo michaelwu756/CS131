@@ -1,16 +1,16 @@
-let my_subset_test0 = subset [] ["a";"a"];;
-let my_subset_test1 = subset ["a";"a"] ["a";"b"];;
-let my_subset_test2 = not (subset ["b";"a"] ["a";"c"]);;
+let my_subset_test0 = subset [] ["a"; "a"];;
+let my_subset_test1 = subset ["a"; "a"] ["a"; "b"];;
+let my_subset_test2 = not (subset ["b"; "a"] ["a"; "c"]);;
 
-let my_equal_sets_test0 = equal_sets ["a";"b"] ["b";"b";"a"];;
-let my_equal_sets_test1 = not (equal_sets ["a";"b"] ["c";"b";"a"]);;
+let my_equal_sets_test0 = equal_sets ["a"; "b"] ["b"; "b"; "a"];;
+let my_equal_sets_test1 = not (equal_sets ["a"; "b"] ["c"; "b"; "a"]);;
 
-let my_set_union_test0 = equal_sets (set_union ["a"] ["b"]) ["a";"b"];;
-let my_set_union_test1 = equal_sets (set_union ["b";"c"] []) ["b";"c"];;
+let my_set_union_test0 = equal_sets (set_union ["a"] ["b"]) ["a"; "b"];;
+let my_set_union_test1 = equal_sets (set_union ["b"; "c"] []) ["b"; "c"];;
 
 let my_set_intersection_test0 = equal_sets (set_intersection ["a"] ["b"]) [];;
 let my_set_intersection_test1 = equal_sets (set_intersection ["a"] ["a"]) ["a"];;
-let my_set_intersection_test1 = equal_sets (set_intersection ["a";"b"] ["a";"c"]) ["a"];;
+let my_set_intersection_test1 = equal_sets (set_intersection ["a"; "b"] ["a"; "c"]) ["a"];;
 
 let my_set_diff_test0 = equal_sets (set_diff ["a"] ["a"]) [];;
 let my_set_diff_test0 = equal_sets (set_diff ["a"] ["b"]) ["a"];;
@@ -22,8 +22,8 @@ let my_computed_periodic_point_test0 = computed_periodic_point (=) (fun x -> if 
 
 let my_while_away_test0 = while_away (fun x -> x+3) (fun x -> x<10) 0 = [0;3;6;9];;
 
-let my_rle_decode_test0 = rle_decode [4,"w"] = ["w";"w";"w";"w"];;
-let my_rle_decode_test1 = rle_decode [2,"w";1,"b";] = ["w";"w";"b"];;
+let my_rle_decode_test0 = rle_decode [4, "w"] = ["w"; "w"; "w"; "w"];;
+let my_rle_decode_test1 = rle_decode [2, "w"; 1, "b"] = ["w"; "w"; "b"];;
 
 type test_nonterminals = | A | B | C | D;;
 
@@ -155,5 +155,48 @@ let my_generating_rules_test3 = generating_rules (Expr, (List.tl (List.tl awksub
                                    Num, [T"7"];
                                    Num, [T"8"];
                                    Num, [T"9"]];;
+
+let my_extract_reachable_symbols_test0 = equal_sets (extract_reachable_symbols B [A, [N B; N D]]) [B; D];;
+let my_extract_reachable_symbols_test1 = equal_sets (extract_reachable_symbols C [A, [N B; N D]]) [B; C; D];;
+
+let my_mark_reachable_test0 =
+  mark_reachable awksub_rules Expr [] =
+    [Expr, [T"("; N Expr; T")"];
+     Expr, [N Num];
+     Expr, [N Expr; N Binop; N Expr];
+     Expr, [N Lvalue];
+     Expr, [N Incrop; N Lvalue];
+     Expr, [N Lvalue; N Incrop]];;
+let my_mark_reachable_test1 =
+  let f = mark_reachable awksub_rules Expr in
+  f (f []) = awksub_rules;;
+let my_mark_reachable_test2 =
+  mark_reachable (List.tl (List.tl awksub_rules)) Expr [] =
+    [Expr, [N Expr; N Binop; N Expr];
+     Expr, [N Lvalue];
+     Expr, [N Incrop; N Lvalue];
+     Expr, [N Lvalue; N Incrop]];;
+let my_mark_reachable_test3 =
+  let f = mark_reachable (List.tl (List.tl awksub_rules)) Expr in
+  f (f []) =
+    [Expr, [N Expr; N Binop; N Expr];
+     Expr, [N Lvalue];
+     Expr, [N Incrop; N Lvalue];
+     Expr, [N Lvalue; N Incrop];
+     Lvalue, [T"$"; N Expr];
+     Incrop, [T"++"];
+     Incrop, [T"--"];
+     Binop, [T"+"];
+     Binop, [T"-"]];;
+
+let my_reachable_rules_test0 = reachable_rules (Expr, awksub_rules) = awksub_rules;;
+let my_reachable_rules_test1 = reachable_rules (Conversation, giant_rules) = giant_rules;;
+let my_reachable_rules_test2 = reachable_rules (Sentence, giant_rules) =
+                                 [Quiet, [];
+                                  Grunt, [T"khrgh"];
+                                  Shout, [T"aooogah!"];
+                                  Sentence, [N Quiet];
+                                  Sentence, [N Grunt];
+                                  Sentence, [N Shout]];;
 
 let my_filter_blind_alleys_test0 = true;;
