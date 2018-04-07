@@ -75,7 +75,7 @@ let rle_decode lp =
     match lp with
     | [] -> l
     | f::s -> (match f with (num, value) -> (let addedList = appendNum l num value in
-                                            rle_decode_helper addedList s)) in
+                                             rle_decode_helper addedList s)) in
   List.rev (rle_decode_helper [] lp)
 ;;
 
@@ -104,8 +104,8 @@ let mark_generating rules generating_rules =
     match rules with
     | [] -> return_rules
     | f::s -> (match f with (symb, replacement) -> (if check_terminal_or_generating replacement generating_symbols
-                                                   then mark_generating_helper s generating_symbols (f::return_rules)
-                                                   else mark_generating_helper s generating_symbols return_rules)) in
+                                                    then mark_generating_helper s generating_symbols (f::return_rules)
+                                                    else mark_generating_helper s generating_symbols return_rules)) in
   List.rev (mark_generating_helper rules (extract_symbols generating_rules) [])
 ;;
 

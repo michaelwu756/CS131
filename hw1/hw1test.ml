@@ -27,34 +27,29 @@ let my_rle_decode_test1 = rle_decode [2, "w"; 1, "b"] = ["w"; "w"; "b"];;
 
 type test_nonterminals = | A | B | C | D;;
 
-let my_check_terminal_or_generating_test0 = check_terminal_or_generating [T "a"] [] = true;;
-let my_check_terminal_or_generating_test1 = check_terminal_or_generating [T "a"; N D] [D] = true;;
-let my_check_terminal_or_generating_test2 = check_terminal_or_generating [T "a"; N D; N A] [D] = false;;
-let my_check_terminal_or_generating_test2 = check_terminal_or_generating [T "a"; N D; N A; T "b"] [D; A] = true;;
-
 type awksub_nonterminals = | Expr | Lvalue | Incrop | Binop | Num;;
 let awksub_rules =
-   [Expr, [T"("; N Expr; T")"];
-    Expr, [N Num];
-    Expr, [N Expr; N Binop; N Expr];
-    Expr, [N Lvalue];
-    Expr, [N Incrop; N Lvalue];
-    Expr, [N Lvalue; N Incrop];
-    Lvalue, [T"$"; N Expr];
-    Incrop, [T"++"];
-    Incrop, [T"--"];
-    Binop, [T"+"];
-    Binop, [T"-"];
-    Num, [T"0"];
-    Num, [T"1"];
-    Num, [T"2"];
-    Num, [T"3"];
-    Num, [T"4"];
-    Num, [T"5"];
-    Num, [T"6"];
-    Num, [T"7"];
-    Num, [T"8"];
-    Num, [T"9"]];;
+  [Expr, [T"("; N Expr; T")"];
+   Expr, [N Num];
+   Expr, [N Expr; N Binop; N Expr];
+   Expr, [N Lvalue];
+   Expr, [N Incrop; N Lvalue];
+   Expr, [N Lvalue; N Incrop];
+   Lvalue, [T"$"; N Expr];
+   Incrop, [T"++"];
+   Incrop, [T"--"];
+   Binop, [T"+"];
+   Binop, [T"-"];
+   Num, [T"0"];
+   Num, [T"1"];
+   Num, [T"2"];
+   Num, [T"3"];
+   Num, [T"4"];
+   Num, [T"5"];
+   Num, [T"6"];
+   Num, [T"7"];
+   Num, [T"8"];
+   Num, [T"9"]];;
 
 type giant_nonterminals = | Conversation | Sentence | Grunt | Snore | Shout | Quiet;;
 let giant_rules =
@@ -67,6 +62,11 @@ let giant_rules =
    Sentence, [N Shout];
    Conversation, [N Snore];
    Conversation, [N Sentence; T","; N Conversation]];;
+
+let my_check_terminal_or_generating_test0 = check_terminal_or_generating [T "a"] [] = true;;
+let my_check_terminal_or_generating_test1 = check_terminal_or_generating [T "a"; N D] [D] = true;;
+let my_check_terminal_or_generating_test2 = check_terminal_or_generating [T "a"; N D; N A] [D] = false;;
+let my_check_terminal_or_generating_test2 = check_terminal_or_generating [T "a"; N D; N A; T "b"] [D; A] = true;;
 
 let my_extract_symbols_test0 = extract_symbols awksub_rules = [Expr; Lvalue; Incrop; Binop; Num];;
 let my_extract_symbols_test1 = extract_symbols giant_rules = [Snore; Quiet; Grunt; Shout; Sentence; Conversation];;
@@ -199,4 +199,14 @@ let my_reachable_rules_test2 = reachable_rules (Sentence, giant_rules) =
                                   Sentence, [N Grunt];
                                   Sentence, [N Shout]];;
 
-let my_filter_blind_alleys_test0 = true;;
+let my_filter_blind_alleys_test0 =
+  filter_blind_alleys (A, [A, [T"b"; N B];
+                           A, [T"d"; N D];
+                           B, [T"b"; N B];
+                           B, [T"b"];
+                           C, [T"b"; N B];
+                           C, [T"c"];
+                           D, [T"d"; N D; N C]])
+  = (A, [A, [T"b"; N B];
+         B, [T"b"; N B];
+         B, [T"b"]]);;
