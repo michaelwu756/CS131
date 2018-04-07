@@ -139,3 +139,4 @@ let mark_reachable rules start reachable_rules =
 let reachable_rules g = match g with (start, rules) -> computed_fixed_point (=) (mark_reachable rules start) [];;
 
 let filter_blind_alleys g = match g with (start, rules) -> (start, generating_rules g);;
+(* To remove unreachable rules, return (start, reachable_rules (start, generating_rules g)) instead *)
