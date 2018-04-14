@@ -22,6 +22,3 @@ let convert_grammar gram1 =
   match gram1 with
   | (s,a) -> (s, production_function a)
 ;;
-(*  match gram1 with
-  | (s,[]) -> (s, fun x -> [[]]);
-  | (s,a) -> (s, fun x*)
