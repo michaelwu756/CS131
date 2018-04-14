@@ -69,7 +69,7 @@ let generate_derivations start prod deriv =
   let construct_deriv deriv nonterm replacement = List.append deriv [(nonterm, replacement)] in
   match first_nonterm expr with
   | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules expr prod)
-  | None -> []
+  | None -> [deriv]
 ;;
 
 let filter_derivations start frag derivs =
@@ -88,14 +88,28 @@ let rec generate_valid_derivations start frag prod derivs =
                   (generate_derivations start prod) derivs)))
 ;;
 
+let generate_suffix start derivation frag =
+  let eval = evaluate_derivation start derivation in
+  let rec truncate_prefix eval frag =
+    match eval with
+    | (T symb)::t_eval -> (match frag with
+                           | [] -> []
+                           | h::t_frag -> if h = symb
+                                          then truncate_prefix t_eval t_frag
+                                          else frag)
+    | _ -> frag in
+  truncate_prefix eval frag
+;;
+
 let parse_prefix gram =
   let matcher start production accept frag =
     let valid_derivations = generate_valid_derivations start frag production [[]] in
     let rec matcher_helper start production derivations accept frag =
       match derivations with
       | [] -> None
-      | h::t -> if (match accept h frag with | Some _ -> true | None -> false)
-                then accept h frag
+      | h::t -> let suffix = generate_suffix start h frag in
+                if (match accept h suffix with | Some _ -> true | None -> false)
+                then accept h suffix
                 else matcher_helper start production t accept frag in
     matcher_helper start production valid_derivations accept frag in
   match gram with (s,p) -> matcher [N s] p
