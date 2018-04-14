@@ -19,6 +19,84 @@ let convert_grammar gram1 =
     if List.exists (check_element x) grouped_rules
     then snd (List.find (check_element x) grouped_rules)
     else [[]] in
-  match gram1 with
-  | (s,a) -> (s, production_function a)
+  match gram1 with (s,a) -> (s, production_function a)
+;;
+
+let rec first_nonterm expr =
+  match expr with
+  | [] -> None
+  | (T _)::t -> first_nonterm t
+  | (N nonterm)::_ -> Some nonterm
+;;
+
+let check_terminal expr =
+  match first_nonterm expr with
+  | Some _ -> false
+  | None -> true
+;;
+
+let rec apply_nonterm return_expr expr nonterm replacement =
+  match expr with
+  | [] -> return_expr
+  | (T symb)::t -> apply_nonterm (return_expr@[T symb]) t nonterm replacement
+  | (N symb)::t -> if symb = nonterm
+                   then (return_expr@replacement@t)
+                   else apply_nonterm (return_expr@[N symb]) t nonterm replacement
+;;
+
+let next_production_rules expr prod =
+  match first_nonterm expr with
+  | Some nonterm -> prod nonterm
+  | None -> []
+;;
+
+let rec prefix_match frag expr =
+  match expr with
+  | (T symb)::t_expr -> (match frag with
+                         | h::t_frag -> if h = symb then prefix_match t_frag t_expr else false
+                         | [] -> false)
+  | _ -> true
+;;
+
+let rec evaluate_derivation expr deriv =
+  match deriv with
+  | [] -> expr
+  | (nonterm, replacement)::t -> evaluate_derivation (apply_nonterm [] expr nonterm replacement) t
+;;
+
+let generate_derivations start prod deriv =
+  let expr = evaluate_derivation start deriv in
+  let construct_deriv deriv nonterm replacement = List.append deriv [(nonterm, replacement)] in
+  match first_nonterm expr with
+  | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules expr prod)
+  | None -> []
+;;
+
+let filter_derivations start frag derivs =
+  let evaluate_prefix_match start frag deriv = prefix_match frag (evaluate_derivation start deriv) in
+  List.filter (evaluate_prefix_match start frag) derivs
+;;
+
+let rec generate_valid_derivations start frag prod derivs =
+  let evaluate_check_terminal start deriv = check_terminal (evaluate_derivation start deriv) in
+  if List.for_all (evaluate_check_terminal start) derivs
+  then derivs
+  else generate_valid_derivations start frag prod
+         (filter_derivations start frag
+            (List.concat
+               (List.map
+                  (generate_derivations start prod) derivs)))
+;;
+
+let parse_prefix gram =
+  let matcher start production accept frag =
+    let valid_derivations = generate_valid_derivations start frag production [[]] in
+    let rec matcher_helper start production derivations accept frag =
+      match derivations with
+      | [] -> None
+      | h::t -> if (match accept h frag with | Some _ -> true | None -> false)
+                then accept h frag
+                else matcher_helper start production t accept frag in
+    matcher_helper start production valid_derivations accept frag in
+  match gram with (s,p) -> matcher [N s] p
 ;;
