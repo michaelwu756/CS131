@@ -214,7 +214,7 @@ let generate_derivations_test0 =
     [[(Expr, [N Term; N Binop; N Expr])];
      [(Expr, [N Term])]];;
 let generate_derivations_test1 =
-  (generate_derivations [N Expr] (snd awkish_grammar) [(Expr, [N Term; N Binop; N Expr])]) =
+  (generate_derivations [N Term; N Binop; N Expr] (snd awkish_grammar) [(Expr, [N Term; N Binop; N Expr])]) =
     List.map (List.rev) [[(Expr, [N Term; N Binop; N Expr]);
                           (Term, [N Num])];
                          [(Expr, [N Term; N Binop; N Expr]);
@@ -230,7 +230,7 @@ let filter_derivations_test0 =
   let deriv = [(Expr, [N Term; N Binop; N Expr])] in
   (filter_derivations ["3"; "+"; "4"; "xyzzy"]
      (evaluate_derivation [N Expr] deriv)
-     (generate_derivations [N Expr] (snd awkish_grammar) deriv)) =
+     (generate_derivations [N Term; N Binop; N Expr] (snd awkish_grammar) deriv)) =
     List.map (List.rev) [[(Expr, [N Term; N Binop; N Expr]);
                           (Term, [N Num])];
                          [(Expr, [N Term; N Binop; N Expr]);
