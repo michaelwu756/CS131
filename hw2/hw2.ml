@@ -52,7 +52,8 @@ let rec prefix_match frag expr =
   | (T symb)::t_expr -> (match frag with
                          | h::t_frag -> if h = symb then prefix_match t_frag t_expr else false
                          | [] -> false)
-  | _ -> true
+  | (N _)::_ -> true
+  | [] -> true
 
 let generate_derivations eval prod deriv =
   let construct_deriv deriv nonterm replacement = (nonterm, replacement)::deriv in
@@ -63,11 +64,11 @@ let generate_derivations eval prod deriv =
 let filter_derivations frag prev derivs =
   let evaluate_prefix_match frag deriv =
     match deriv with
-    | (eval, (nonterm, replacement)::t) -> prefix_match frag eval
+    | (eval, (_, _)::_) -> prefix_match frag eval
     | _ -> false in
   let calculate_expr prev deriv =
     match deriv with
-    | (nonterm, replacement)::t -> (apply_nonterm prev nonterm replacement, deriv)
+    | (nonterm, replacement)::_ -> (apply_nonterm prev nonterm replacement, deriv)
     | [] -> (prev, deriv) in
   List.filter (evaluate_prefix_match frag) (List.map (calculate_expr prev) derivs)
 
@@ -78,7 +79,8 @@ let rec generate_suffix eval frag =
                          | h::t_frag -> if h = symb
                                         then generate_suffix t_eval t_frag
                                         else frag)
-  | _ -> frag
+  | (N _)::_ -> frag
+  | [] -> frag
 
 let rec generate_valid_derivation start prod accept frag derivs =
   let self = generate_valid_derivation start prod accept frag in

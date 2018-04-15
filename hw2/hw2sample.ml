@@ -1,4 +1,4 @@
-open Hw2;;
+open Hw2
 
 let accept_all derivation string = Some (derivation, string)
 let accept_empty_suffix derivation = function
