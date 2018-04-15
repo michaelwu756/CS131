@@ -49,7 +49,8 @@ rule. This required O(n) time in terms of the length of the expression. This was
 occurring because I was recalculating the expression associated with each
 derivation from the start nonterminal, instead of storing them together. By
 choosing to store expressions with their derivations, I was able to
-significantly improve my runtime.
+significantly improve my runtime. At the end I was able to execute the sample
+test in about 50s wall time.
 
 Because this implementation uses a depth first search on the leftmost
 nonterminal and always applies rules in the order they are given in the
