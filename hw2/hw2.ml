@@ -60,11 +60,10 @@ let rec evaluate_derivation expr deriv =
   | [] -> expr
   | (nonterm, replacement)::t -> apply_nonterm (evaluate_derivation expr t) nonterm replacement
 
-let generate_derivations start prod deriv =
-  let expr = evaluate_derivation start deriv in
+let generate_derivations eval prod deriv =
   let construct_deriv deriv nonterm replacement = (nonterm, replacement)::deriv in
-  match first_nonterm expr with
-  | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules expr prod)
+  match first_nonterm eval with
+  | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules eval prod)
   | None -> [deriv]
 
 let filter_derivations frag prev derivs =
@@ -89,7 +88,7 @@ let rec generate_valid_derivation start prod accept frag derivs =
   | [] -> None
   | h::t -> let eval = evaluate_derivation start h in
             if not (check_terminal eval)
-            then self ((filter_derivations frag eval (generate_derivations start prod h))@t)
+            then self ((filter_derivations frag eval (generate_derivations eval prod h))@t)
             else (match accept h (generate_suffix eval frag) with
                   | Some (deriv, suf) -> Some (List.rev deriv, suf)
                   | None -> self t)

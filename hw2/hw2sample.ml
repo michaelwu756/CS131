@@ -1,3 +1,5 @@
+open Hw2;;
+
 let accept_all derivation string = Some (derivation, string)
 let accept_empty_suffix derivation = function
    | [] -> Some (derivation, [])
@@ -118,3 +120,13 @@ let test5 =
       ([(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"]);
 	(Binop, [T "-"]); (Expr, [N Term]); (Term, [N Num]); (Num, [T "4"])],
        ["+"; "$"; "5"; "-"; "6"]))
+
+let main () =
+  Printf.printf "Test 0: %B\n" test0;
+  Printf.printf "Test 1: %B\n" test1;
+  Printf.printf "Test 2: %B\n" test2;
+  Printf.printf "Test 3: %B\n" test3;
+  Printf.printf "Test 4: %B\n" test4;
+  Printf.printf "Test 5: %B\n" test5
+
+let _ = main ()
