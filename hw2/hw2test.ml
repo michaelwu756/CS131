@@ -138,6 +138,12 @@ let accept_plus_suffix derivation = function
   | "+"::t -> Some (derivation, "+"::t)
   | _ -> None
 
+let accept_empty_suffix derivation = function
+  | [] -> Some (derivation, [])
+  | _ -> None
+
+let accept_any_suffix derivation suffix = Some (derivation, suffix)
+
 let generate_valid_derivation_test_0 =
   (generate_valid_derivation
      [N (fst awkish_grammar)]
@@ -146,3 +152,29 @@ let generate_valid_derivation_test_0 =
      ["3"; "+"; "4"; "-"]
      [([N (fst awkish_grammar)],[])]) =
     Some ([(Expr, [N Term]); (Term, [N Num]); (Num, [T "3"])], ["+"; "4"; "-"])
+
+type test_nonterminals = | A | B | C | D
+
+let test_grammar =
+  (A,
+   function
+   | A -> [[T "b"; N B]; [T "d"; N D; N B]; [T "a"]; [T "b"; N C]]
+   | B -> [[T "b"; N B]; [T "c"; N C]; [T "b"]]
+   | C -> [[T "c"]; [T "x"]; [T "y"]; [N D]]
+   | D -> [[T "d"]])
+
+
+let test_1 =
+  parse_prefix test_grammar accept_empty_suffix ["d"; "d"; "c"; "x"] =
+    Some ([(A, [T "d"; N D; N B]);
+           (D, [T "d"]);
+           (B, [T "c"; N C]);
+           (C, [T "x"])], [])
+
+let test_2 =
+  parse_prefix test_grammar accept_any_suffix ["b"; "b"; "c"; "d"] =
+    Some ([(A, [T "b"; N B]);
+           (B, [T "b"; N B]);
+           (B, [T "c"; N C]);
+           (C, [N D]);
+           (D, [T "d"])], [])
