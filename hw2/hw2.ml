@@ -61,31 +61,23 @@ let rec prefix_match frag expr =
 let rec evaluate_derivation expr deriv =
   match deriv with
   | [] -> expr
-  | (nonterm, replacement)::t -> evaluate_derivation (apply_nonterm [] expr nonterm replacement) t
+  | (nonterm, replacement)::t -> apply_nonterm [] (evaluate_derivation expr t) nonterm replacement
 ;;
 
 let generate_derivations start prod deriv =
   let expr = evaluate_derivation start deriv in
-  let construct_deriv deriv nonterm replacement = List.append deriv [(nonterm, replacement)] in
+  let construct_deriv deriv nonterm replacement = (nonterm, replacement)::deriv in
   match first_nonterm expr with
   | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules expr prod)
   | None -> [deriv]
 ;;
 
-let filter_derivations start frag derivs =
-  let evaluate_prefix_match start frag deriv = prefix_match frag (evaluate_derivation start deriv) in
-  List.filter (evaluate_prefix_match start frag) derivs
-;;
-
-let rec generate_valid_derivations start frag prod derivs =
-  let evaluate_check_terminal start deriv = check_terminal (evaluate_derivation start deriv) in
-  if List.for_all (evaluate_check_terminal start) derivs
-  then derivs
-  else generate_valid_derivations start frag prod
-         (filter_derivations start frag
-            (List.concat
-               (List.map
-                  (generate_derivations start prod) derivs)))
+let filter_derivations frag prev derivs =
+  let evaluate_prefix_match frag prev deriv =
+    match deriv with
+    | (nonterm, replacement)::t -> prefix_match frag (apply_nonterm [] prev nonterm replacement)
+    | [] -> false in
+  List.filter (evaluate_prefix_match frag prev) derivs
 ;;
 
 let generate_suffix start derivation frag =
@@ -101,16 +93,20 @@ let generate_suffix start derivation frag =
   truncate_prefix eval frag
 ;;
 
+let rec generate_valid_derivation start prod accept frag derivs =
+  let self = generate_valid_derivation start prod accept frag in
+  match derivs with
+  | [] -> None
+  | h::t -> Printf.printf "%d\n" (List.length h);
+            let eval = evaluate_derivation start h in
+            if not (check_terminal eval)
+            then self ((filter_derivations frag eval (generate_derivations start prod h))@t)
+            else (match accept h (generate_suffix start h frag) with
+                  | Some (deriv, suf) -> Some (List.rev deriv, suf)
+                  | None -> self t)
+;;
+
 let parse_prefix gram =
-  let matcher start production accept frag =
-    let valid_derivations = generate_valid_derivations start frag production [[]] in
-    let rec matcher_helper start production derivations accept frag =
-      match derivations with
-      | [] -> None
-      | h::t -> let suffix = generate_suffix start h frag in
-                if (match accept h suffix with | Some _ -> true | None -> false)
-                then accept h suffix
-                else matcher_helper start production t accept frag in
-    matcher_helper start production valid_derivations accept frag in
+  let matcher start production accept frag = generate_valid_derivation start production accept frag [[]] in
   match gram with (s,p) -> matcher [N s] p
 ;;
