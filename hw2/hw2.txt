@@ -1,0 +1,73 @@
+I solved the problem using a depth-first search on the set of possible
+derivations. Essentially at each step I maintained a tree of derivations and
+their expressions, and chose to expand the leftmost nonterminal in corresponding
+expression of the the deepest unexplored derivation. I used a stack like
+structure, which was a list of tuples of expressions and derivations. By always
+looking at the first element of this list, I effectively pop the first
+derivation off this stack and then prepend its possible children when I
+expand. This maintains the LIFO structure of the stack. I calculate children
+using the ordering of the production function for the first nonterminal. If
+applying a rule leads to a prefix expression that cannot possibly occur, I
+filter out this derivation. If the top of the stack is a terminal node and has
+no nonterminals, then I check this derivation against the accept function. Upon
+the first accepted terminal derivation, I return and stop the depth first
+search. If the entire set of possible valid derivations were exhausted, then I
+returned None.
+
+When writing this solution I slowly built up my functions by writing test cases
+for all of them that captured small bits of functionality. This helped with
+debugging as I could tell which functions were not being implemented
+correctly. I also made a makefile to easily run my test cases. With this, I
+could see syntax errors and logic errors.
+
+The initial way I tried to solve this problem was to do a breadth-first search
+using List.map to expand all derivations in a set of derivations. This worked
+for smaller examples, but I found that for test4 as the number of rules in our
+derivation increased, this led to exponential space and time complexity that was
+unacceptable. Test4 would require somewhere on the order of about 2^100 times
+longer than the other tests. I ran test4 until I actually got a stack overflow
+using breadth first search.
+
+After implementing my depth-first search, I still had bad performance and needed
+to optimize it more. I noticed that I implemented some functions using the @
+operator, instead of the :: operator. This cost me time since appending to the
+end of the list is O(n), much worse than O(1) time to prepend to the beginning
+of the list. I rewrote my functions to traverse lists backwards in order to take
+advantage of this speed performance. In order to maintain the same
+functionality, I had to remember to reverse my lists when outputting my
+derivations.
+
+Finally, I decided to profile the sample code to further speed up performance. I
+edited the sample code to be compilable, and generated a .mli file with
+
+ocamlc -i hw2.ml > hw2.mli
+
+which let me create an executable using ocamlopt. I set the -p flag for
+profiling and found that most of my code was spent in my apply_nonterm function,
+which takes an expression and expands the nonterminal in it using a particular
+rule. This required O(n) time in terms of the length of the expression. This was
+occurring because I was recalculating the expression associated with each
+derivation from the start nonterminal, instead of storing them together. By
+choosing to store expressions with their derivations, I was able to
+significantly improve my runtime.
+
+Because this implementation uses a depth first search on the leftmost
+nonterminal and always applies rules in the order they are given in the
+production function, my matcher will go into an infinite loop if the grammar it
+is given contains a loop on the left. For example the grammar
+
+Expr -> Expr
+Expr -> "a"
+
+will generate an infinite search tree, so no result will be returned. However,
+if the rules result in a prefix, my matcher will work since it will terminate
+after checking that the expanded expression does not match the prefix. For
+example the grammar
+
+Expr -> "("Expr")"
+EXpr -> "a"
+
+will terminate, since Expr does not expand infinitely on the leftmost
+side. After a given amount of iterations it will generate a string of "("'s,
+which I can match against the string I want to parse to determine if there is a
+prefix match or not.
