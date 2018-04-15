@@ -133,3 +133,16 @@ let filter_derivations_test0 =
       [(Term, [N Lvalue; N Incrop]); (Expr, [N Term; N Binop; N Expr])])]
 
 let generate_suffix_test0 = (generate_suffix [T "3"] ["3"; "+"]) = ["+"]
+
+let accept_plus_suffix derivation = function
+  | "+"::t -> Some (derivation, "+"::t)
+  | _ -> None
+
+let generate_valid_derivation_test_0 =
+  (generate_valid_derivation
+     [N (fst awkish_grammar)]
+     (snd awkish_grammar)
+     accept_plus_suffix
+     ["3"; "+"; "4"; "-"]
+     [([N (fst awkish_grammar)],[])]) =
+    Some ([(Expr, [N Term]); (Term, [N Num]); (Num, [T "3"])], ["+"; "4"; "-"])
