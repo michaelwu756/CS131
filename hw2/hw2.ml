@@ -99,7 +99,7 @@ let rec generate_valid_derivation start prod accept frag derivs =
   let self = generate_valid_derivation start prod accept frag in
   match derivs with
   | [] -> None
-  | h::t -> Printf.printf "%d\n" (List.length h);
+  | h::t -> (*Printf.printf "%d\n" (List.length h);*)
             let eval = evaluate_derivation start h in
             if not (check_terminal eval)
             then self ((filter_derivations frag eval (generate_derivations start prod h))@t)
