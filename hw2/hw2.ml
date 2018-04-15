@@ -82,28 +82,24 @@ let filter_derivations frag prev derivs =
   List.filter (evaluate_prefix_match frag prev) derivs
 ;;
 
-let generate_suffix start derivation frag =
-  let eval = evaluate_derivation start derivation in
-  let rec truncate_prefix eval frag =
-    match eval with
-    | (T symb)::t_eval -> (match frag with
-                           | [] -> []
-                           | h::t_frag -> if h = symb
-                                          then truncate_prefix t_eval t_frag
-                                          else frag)
-    | _ -> frag in
-  truncate_prefix eval frag
+let rec generate_suffix eval frag =
+  match eval with
+  | (T symb)::t_eval -> (match frag with
+                         | [] -> []
+                         | h::t_frag -> if h = symb
+                                        then generate_suffix t_eval t_frag
+                                        else frag)
+  | _ -> frag
 ;;
 
 let rec generate_valid_derivation start prod accept frag derivs =
   let self = generate_valid_derivation start prod accept frag in
   match derivs with
   | [] -> None
-  | h::t -> (*Printf.printf "%d\n" (List.length h);*)
-            let eval = evaluate_derivation start h in
+  | h::t -> let eval = evaluate_derivation start h in
             if not (check_terminal eval)
             then self ((filter_derivations frag eval (generate_derivations start prod h))@t)
-            else (match accept h (generate_suffix start h frag) with
+            else (match accept h (generate_suffix eval frag) with
                   | Some (deriv, suf) -> Some (List.rev deriv, suf)
                   | None -> self t)
 ;;
