@@ -78,112 +78,6 @@ let prefix_match_test1 = (prefix_match ["3"] [T"3"; N Expr]) = true;;
 let prefix_match_test2 = (prefix_match ["3"] [T"3"; T"+"; N Expr]) = false;;
 let prefix_match_test3 = (prefix_match ["3"] [N Expr; T"3"; T"+"]) = true;;
 
-let long_derivation = [(Expr, [N Term; N Binop; N Expr]);
-                       (Term, [T "("; N Expr; T ")"]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "8"]);
-                       (Binop, [T "-"]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Incrop; N Lvalue]);
-                       (Incrop, [T "++"]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Incrop; N Lvalue]);
-                       (Incrop, [T "--"]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Num]);
-                       (Num, [T "9"]);
-                       (Binop, [T "+"]);
-                       (Expr, [N Term]);
-                       (Term, [T "("; N Expr; T ")"]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term; N Binop; N Expr]);
-                       (Term, [N Incrop; N Lvalue]);
-                       (Incrop, [T "++"]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "2"]);
-                       (Binop, [T "+"]);
-                       (Expr, [N Term]);
-                       (Term, [T "("; N Expr; T ")"]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "8"]);
-                       (Binop, [T "-"]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "9"]);
-                       (Binop, [T "-"]);
-                       (Expr, [N Term]);
-                       (Term, [T "("; N Expr; T ")"]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue; N Incrop]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue; N Incrop]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Incrop; N Lvalue]);
-                       (Incrop, [T "++"]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue; N Incrop]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "5"]);
-                       (Incrop, [T "++"]);
-                       (Incrop, [T "++"]);
-                       (Incrop, [T "--"]);
-                       (Binop, [T "-"]);
-                       (Expr, [N Term]);
-                       (Term, [N Incrop; N Lvalue]);
-                       (Incrop, [T "++"]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue; N Incrop]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [T "("; N Expr; T ")"]);
-                       (Expr, [N Term]);
-                       (Term, [N Lvalue; N Incrop]);
-                       (Lvalue, [T "$"; N Expr]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "8"]);
-                       (Incrop, [T "++"]);
-                       (Incrop, [T "++"]);
-                       (Binop, [T "+"]);
-                       (Expr, [N Term]);
-                       (Term, [N Num]);
-                       (Num, [T "0"])];;
-
-let long_expression = [T"("; T"$"; T"8"; T")"; T"-"; T"$"; T"++"; T"$"; T"--"; T"$"; T"9"; T"+";
-                       T"("; T"$"; T"++"; T"$"; T"2"; T"+"; T"("; T"8"; T")"; T"-"; T"9"; T")";
-                       T"-"; T"("; T"$"; T"$"; T"$"; T"$"; T"$"; T"++"; T"$"; T"$"; T"5"; T"++";
-                       T"++"; T"--"; T")"; T"-"; T"++"; T"$"; T"$"; T"("; T"$"; T"8"; T"++"; T")";
-                       T"++"; T"+"; T"0"]
-
 let awkish_grammar =
   (Expr,
    function
@@ -208,7 +102,6 @@ let awkish_grammar =
       [[T"0"]; [T"1"]; [T"2"]; [T"3"]; [T"4"];
        [T"5"]; [T"6"]; [T"7"]; [T"8"]; [T"9"]]);;
 
-let evaluate_derivation_test0 = (evaluate_derivation [N Expr] (List.rev long_derivation)) = long_expression;;
 let generate_derivations_test0 =
   (generate_derivations [N Expr] (snd awkish_grammar) []) =
     [[(Expr, [N Term; N Binop; N Expr])];
@@ -228,33 +121,13 @@ let generate_derivations_test1 =
 
 let filter_derivations_test0 =
   let deriv = [(Expr, [N Term; N Binop; N Expr])] in
-  (filter_derivations ["3"; "+"; "4"; "xyzzy"]
-     (evaluate_derivation [N Expr] deriv)
+  (filter_derivations ["3"; "+"; "4"; "xyzzy"] [N Term; N Binop; N Expr]
      (generate_derivations [N Term; N Binop; N Expr] (snd awkish_grammar) deriv)) =
-    List.map (List.rev) [[(Expr, [N Term; N Binop; N Expr]);
-                          (Term, [N Num])];
-                         [(Expr, [N Term; N Binop; N Expr]);
-                          (Term, [N Lvalue])];
-                         [(Expr, [N Term; N Binop; N Expr]);
-                          (Term, [N Incrop; N Lvalue])];
-                         [(Expr, [N Term; N Binop; N Expr]);
-                          (Term, [N Lvalue; N Incrop])]];;
-
-let accept_all derivation string = Some (derivation, string);;
-
-let accept_empty_suffix derivation = function
-  | [] -> Some (derivation, [])
-  | _ -> None
-;;
-(* An example grammar for a small subset of Awk.
-   This grammar is not the same as Homework 1; it is
-   instead the same as the grammar under
-   "Theoretical background" above.  *)
-
-
-
-let test0 =
-  ((parse_prefix awkish_grammar accept_all ["ouch"]) = None);;
-
-let test1 =
-  (parse_prefix awkish_grammar accept_all ["9"]);;
+    [([N Num; N Binop; N Expr],
+      [(Term, [N Num]); (Expr, [N Term; N Binop; N Expr])]);
+     ([N Lvalue; N Binop; N Expr],
+      [(Term, [N Lvalue]); (Expr, [N Term; N Binop; N Expr])]);
+     ([N Incrop; N Lvalue; N Binop; N Expr],
+      [(Term, [N Incrop; N Lvalue]); (Expr, [N Term; N Binop; N Expr])]);
+     ([N Lvalue; N Incrop; N Binop; N Expr],
+      [(Term, [N Lvalue; N Incrop]); (Expr, [N Term; N Binop; N Expr])])];;

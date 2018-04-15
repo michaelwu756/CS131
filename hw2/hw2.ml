@@ -19,8 +19,7 @@ let convert_grammar gram1 =
     if List.exists (check_element x) grouped_rules
     then snd (List.find (check_element x) grouped_rules)
     else [[]] in
-  match gram1 with (s,a) -> (s, production_function a)
-;;
+  match gram1 with (s, a) -> (s, production_function a)
 
 let rec first_nonterm expr =
   match expr with
@@ -55,11 +54,6 @@ let rec prefix_match frag expr =
                          | [] -> false)
   | _ -> true
 
-let rec evaluate_derivation expr deriv =
-  match deriv with
-  | [] -> expr
-  | (nonterm, replacement)::t -> apply_nonterm (evaluate_derivation expr t) nonterm replacement
-
 let generate_derivations eval prod deriv =
   let construct_deriv deriv nonterm replacement = (nonterm, replacement)::deriv in
   match first_nonterm eval with
@@ -67,11 +61,15 @@ let generate_derivations eval prod deriv =
   | None -> []
 
 let filter_derivations frag prev derivs =
-  let evaluate_prefix_match frag prev deriv =
+  let evaluate_prefix_match frag deriv =
     match deriv with
-    | (nonterm, replacement)::t -> prefix_match frag (apply_nonterm prev nonterm replacement)
-    | [] -> false in
-  List.filter (evaluate_prefix_match frag prev) derivs
+    | (eval, (nonterm, replacement)::t) -> prefix_match frag eval
+    | _ -> false in
+  let calculate_expr prev deriv =
+    match deriv with
+    | (nonterm, replacement)::t -> (apply_nonterm prev nonterm replacement, deriv)
+    | [] -> (prev, deriv) in
+  List.filter (evaluate_prefix_match frag) (List.map (calculate_expr prev) derivs)
 
 let rec generate_suffix eval frag =
   match eval with
@@ -86,13 +84,12 @@ let rec generate_valid_derivation start prod accept frag derivs =
   let self = generate_valid_derivation start prod accept frag in
   match derivs with
   | [] -> None
-  | h::t -> let eval = evaluate_derivation start h in
-            if not (check_terminal eval)
-            then self ((filter_derivations frag eval (generate_derivations eval prod h))@t)
-            else (match accept h (generate_suffix eval frag) with
-                  | Some (deriv, suf) -> Some (List.rev deriv, suf)
-                  | None -> self t)
+  | (eval, h)::t -> if not (check_terminal eval)
+                    then self ((filter_derivations frag eval (generate_derivations eval prod h))@t)
+                    else (match accept (List.rev h) (generate_suffix eval frag) with
+                          | Some (deriv, suf) -> Some (deriv, suf)
+                          | None -> self t)
 
 let parse_prefix gram =
-  let matcher start production accept frag = generate_valid_derivation start production accept frag [[]] in
-  match gram with (s,p) -> matcher [N s] p
+  let matcher start production accept frag = generate_valid_derivation start production accept frag [(start, [])] in
+  match gram with (s, p) -> matcher [N s] p
