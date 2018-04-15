@@ -178,3 +178,20 @@ let test_2 =
            (B, [T "c"; N C]);
            (C, [N D]);
            (D, [T "d"])], [])
+
+let test_grammar2 =
+  (A,
+   function
+   | A -> [[T "b"; N B; N A]; [N B]]
+   | B -> []
+   | C -> []
+   | D -> [])
+
+let test_3 =
+  parse_prefix test_grammar2 accept_empty_suffix ["b"; "b"] =
+    Some ([(A, [T "b"; N B; N A]);
+           (B, []);
+           (A, [T "b"; N B; N A]);
+           (B, []);
+           (A, [N B]);
+           (B, [])], [])
