@@ -9,7 +9,7 @@ val next_production_rules :
 val prefix_match : 'a list -> ('b, 'a) symbol list -> bool
 val generate_derivations :
   ('a, 'b) symbol list ->
-  ('a -> 'c list) -> ('a * 'c) list -> ('a * 'c) list list
+  ('a -> 'c list list) -> ('a * 'c list) list -> ('a * 'c list) list list
 val filter_derivations :
   'a list ->
   ('b, 'a) symbol list ->

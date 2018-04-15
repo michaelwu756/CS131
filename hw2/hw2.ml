@@ -58,7 +58,9 @@ let rec prefix_match frag expr =
 let generate_derivations eval prod deriv =
   let construct_deriv deriv nonterm replacement = (nonterm, replacement)::deriv in
   match first_nonterm eval with
-  | Some nonterm -> List.map (construct_deriv deriv nonterm) (next_production_rules eval prod)
+  | Some nonterm -> (match next_production_rules eval prod with
+                     | [] -> List.map (construct_deriv deriv nonterm) [[]]
+                     | rules -> List.map (construct_deriv deriv nonterm) rules)
   | None -> []
 
 let filter_derivations frag prev derivs =
