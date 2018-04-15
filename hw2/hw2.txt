@@ -26,7 +26,7 @@ for smaller examples, but I found that for test4 as the number of rules in our
 derivation increased, this led to exponential space and time complexity that was
 unacceptable. Test4 would require somewhere on the order of about 2^100 times
 longer than the other tests. I ran test4 until I actually got a stack overflow
-using breadth first search.
+using breadth-first search.
 
 After implementing my depth-first search, I still had bad performance and needed
 to optimize it more. I noticed that I implemented some functions using the @
@@ -50,9 +50,10 @@ occurring because I was recalculating the expression associated with each
 derivation from the start nonterminal, instead of storing them together. By
 choosing to store expressions with their derivations, I was able to
 significantly improve my runtime. At the end I was able to execute the sample
-test in about 50s wall time.
+test in about 50s wall time in the REPL, and 16 seconds when compiled to machine
+code. This testing was done on lnxsrv09.
 
-Because this implementation uses a depth first search on the leftmost
+Because this implementation uses a depth-first search on the leftmost
 nonterminal and always applies rules in the order they are given in the
 production function, my matcher will go into an infinite loop if the grammar it
 is given contains a loop on the left. For example the grammar
