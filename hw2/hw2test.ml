@@ -56,10 +56,10 @@ let check_terminal_test0 = (check_terminal [T"("; N Expr; T")"]) = false;;
 let check_terminal_test1 = (check_terminal [T"("; T")"]) = true;;
 
 let apply_nonterm_test0 =
-  (apply_nonterm [] [T"("; N Expr; T")"] Expr [N Expr; N Binop; N Expr]) =
+  (apply_nonterm [T"("; N Expr; T")"] Expr [N Expr; N Binop; N Expr]) =
     [T"("; N Expr; N Binop; N Expr; T")"];;
 let apply_nonterm_test1 =
-  (apply_nonterm [] [T"("; T")"] Expr [N Expr; N Binop; N Expr]) =
+  (apply_nonterm [T"("; T")"] Expr [N Expr; N Binop; N Expr]) =
     [T"("; T")"];;
 
 let next_production_rules_test0 =
@@ -208,79 +208,37 @@ let awkish_grammar =
       [[T"0"]; [T"1"]; [T"2"]; [T"3"]; [T"4"];
        [T"5"]; [T"6"]; [T"7"]; [T"8"]; [T"9"]]);;
 
-let evaluate_derivation_test0 = (evaluate_derivation [N Expr] long_derivation) = long_expression;;
+let evaluate_derivation_test0 = (evaluate_derivation [N Expr] (List.rev long_derivation)) = long_expression;;
 let generate_derivations_test0 =
   (generate_derivations [N Expr] (snd awkish_grammar) []) =
     [[(Expr, [N Term; N Binop; N Expr])];
      [(Expr, [N Term])]];;
 let generate_derivations_test1 =
   (generate_derivations [N Expr] (snd awkish_grammar) [(Expr, [N Term; N Binop; N Expr])]) =
-    [[(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Num])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]);
-       (Term, [N Incrop; N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Lvalue; N Incrop])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [T"("; N Expr; T")"])]];;
+    List.map (List.rev) [[(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Num])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Lvalue])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Incrop; N Lvalue])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Lvalue; N Incrop])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [T"("; N Expr; T")"])]];;
 
 let filter_derivations_test0 =
-  (filter_derivations [N Expr] ["3"; "+"; "4"; "xyzzy"] (generate_derivations [N Expr] (snd awkish_grammar) [(Expr, [N Term; N Binop; N Expr])])) =
-    [[(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Num])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Incrop; N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]);
-      (Term, [N Lvalue; N Incrop])]];;
-
-let flatmap deriv = filter_derivations [N Expr] ["3"; "+"; "4"; "xyzzy"]
-                           (List.concat
-                              (List.map
-                                 (generate_derivations [N Expr] (snd awkish_grammar)) deriv));;
-let list_flatmap_test0 =
-  (flatmap [[]]) =
-     [[(Expr, [N Term; N Binop; N Expr])]; [(Expr, [N Term])]];;
-let list_flatmap_test1 =
-  (flatmap (flatmap [[]])) =
-    [[(Expr, [N Term; N Binop; N Expr]); (Term, [N Num])];
-     [(Expr, [N Term; N Binop; N Expr]); (Term, [N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]); (Term, [N Incrop; N Lvalue])];
-     [(Expr, [N Term; N Binop; N Expr]); (Term, [N Lvalue; N Incrop])];
-     [(Expr, [N Term]); (Term, [N Num])];
-     [(Expr, [N Term]); (Term, [N Lvalue])];
-     [(Expr, [N Term]); (Term, [N Incrop; N Lvalue])];
-     [(Expr, [N Term]); (Term, [N Lvalue; N Incrop])]];;
-let list_flatmap_test2 =
-  (flatmap (flatmap (flatmap [[]]))) =
-    [[(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"])];
-     [(Expr, [N Term]); (Term, [N Num]); (Num, [T "3"])]];;
-let list_flatmap_test3 =
-  (flatmap (flatmap (flatmap (flatmap [[]])))) =
-    [[(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"]);
-      (Binop, [T "+"])];
-     [(Expr, [N Term]); (Term, [N Num]); (Num, [T "3"])]]
-;;
-let list_flatmap_test4 =
-  (flatmap (flatmap (flatmap (flatmap (flatmap [[]]))))) =
-    [[(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"]);
-      (Binop, [T "+"]); (Expr, [N Term; N Binop; N Expr])];
-     [(Expr, [N Term; N Binop; N Expr]); (Term, [N Num]); (Num, [T "3"]);
-      (Binop, [T "+"]); (Expr, [N Term])];
-     [(Expr, [N Term]); (Term, [N Num]); (Num, [T "3"])]]
-;;
-
-let generate_valid_derivations_test0 =
-  generate_valid_derivations [N Expr] ["3"; "+"; "4"; "xyzzy"] (snd awkish_grammar) [[]];;
-let generate_valid_derivations_test1 =
-  generate_valid_derivations [N Expr] ["("; "$"; "8"; ")"; "-"; "$"; "++"; "$"; "--"; "$"; "9"; "+";
-                                       "("; "$"; "++"; "$"; "2"; "+"; "("; "8"; ")"; "-"; "9"; ")";
-                                       "-"; "("; "$"; "$"; "$"; "$"; "$"; "++"; "$"; "$"; "5"; "++";
-                                       "++"; "--"; ")"; "-"; "++"; "$"; "$"; "("; "$"; "8"; "++"; ")";
-                                       "++"; "+"; "0"] (snd awkish_grammar) [[]];;
+  let deriv = [(Expr, [N Term; N Binop; N Expr])] in
+  (filter_derivations ["3"; "+"; "4"; "xyzzy"]
+     (evaluate_derivation [N Expr] deriv)
+     (generate_derivations [N Expr] (snd awkish_grammar) deriv)) =
+    List.map (List.rev) [[(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Num])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Lvalue])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Incrop; N Lvalue])];
+                         [(Expr, [N Term; N Binop; N Expr]);
+                          (Term, [N Lvalue; N Incrop])]];;
 
 let accept_all derivation string = Some (derivation, string);;
 

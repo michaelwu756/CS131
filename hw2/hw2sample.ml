@@ -56,7 +56,7 @@ let test3 =
    = None)
 
 (* This one might take a bit longer.... *)
-let test4 =
+(*let test4 =
  ((parse_prefix awkish_grammar accept_all
      ["("; "$"; "8"; ")"; "-"; "$"; "++"; "$"; "--"; "$"; "9"; "+";
       "("; "$"; "++"; "$"; "2"; "+"; "("; "8"; ")"; "-"; "9"; ")";
@@ -99,7 +99,7 @@ let test4 =
        (Term, [N Lvalue; N Incrop]); (Lvalue, [T "$"; N Expr]); (Expr, [N Term]);
        (Term, [N Num]); (Num, [T "8"]); (Incrop, [T "++"]); (Incrop, [T "++"]);
        (Binop, [T "+"]); (Expr, [N Term]); (Term, [N Num]); (Num, [T "0"])],
-      []))
+      []))*)
 
 let rec contains_lvalue = function
   | [] -> false

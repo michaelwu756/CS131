@@ -35,13 +35,15 @@ let check_terminal expr =
   | None -> true
 ;;
 
-let rec apply_nonterm return_expr expr nonterm replacement =
-  match expr with
-  | [] -> return_expr
-  | (T symb)::t -> apply_nonterm (return_expr@[T symb]) t nonterm replacement
-  | (N symb)::t -> if symb = nonterm
-                   then (return_expr@replacement@t)
-                   else apply_nonterm (return_expr@[N symb]) t nonterm replacement
+let apply_nonterm expr nonterm replacement =
+  let rec apply_nonterm_helper return_expr expr nonterm replacement =
+    match expr with
+    | [] -> return_expr
+    | (T symb)::t -> apply_nonterm_helper ((T symb)::return_expr) t nonterm replacement
+    | (N symb)::t -> if symb = nonterm
+                     then List.rev_append t (List.rev_append replacement return_expr)
+                     else apply_nonterm_helper ((N symb)::return_expr) t nonterm replacement in
+  List.rev (apply_nonterm_helper [] expr nonterm replacement)
 ;;
 
 let next_production_rules expr prod =
@@ -61,7 +63,7 @@ let rec prefix_match frag expr =
 let rec evaluate_derivation expr deriv =
   match deriv with
   | [] -> expr
-  | (nonterm, replacement)::t -> apply_nonterm [] (evaluate_derivation expr t) nonterm replacement
+  | (nonterm, replacement)::t -> apply_nonterm (evaluate_derivation expr t) nonterm replacement
 ;;
 
 let generate_derivations start prod deriv =
@@ -75,7 +77,7 @@ let generate_derivations start prod deriv =
 let filter_derivations frag prev derivs =
   let evaluate_prefix_match frag prev deriv =
     match deriv with
-    | (nonterm, replacement)::t -> prefix_match frag (apply_nonterm [] prev nonterm replacement)
+    | (nonterm, replacement)::t -> prefix_match frag (apply_nonterm prev nonterm replacement)
     | [] -> false in
   List.filter (evaluate_prefix_match frag prev) derivs
 ;;
