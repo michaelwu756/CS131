@@ -11,11 +11,11 @@ class SynchronizedState implements State {
     public byte[] current() { return value; }
 
     public synchronized boolean swap(int i, int j) {
-	if (value[i] <= 0 || value[j] >= maxval) {
-	    return false;
-	}
-	value[i]--;
-	value[j]++;
-	return true;
+        if (value[i] <= 0 || value[j] >= maxval) {
+            return false;
+        }
+        value[i]--;
+        value[j]++;
+        return true;
     }
 }
