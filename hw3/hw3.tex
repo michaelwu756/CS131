@@ -1,0 +1,42 @@
+\documentclass[letterpaper,twocolumn,10pt]{article}
+%\usepackage{usenix}
+\begin{document}
+\title{\Large \bf Computer Science 131, Homework 3}
+\date{May 7th, 2018}
+\maketitle
+
+
+\section{Testing Environment}
+
+I performed this assignment on \texttt{lnxsrv09}, which has the following output when I ran \texttt{java --version}.
+{\tt \small
+\begin{verbatim}
+java 10.0.1 2018-04-17
+Java(TM) SE Runtime Environment 18.3
+(build 10.0.1+10)
+Java HotSpot(TM) 64-Bit Server VM 18.3
+(build 10.0.1+10, mixed mode)
+\end{verbatim}
+}
+The file \texttt{/proc/cpuinfo} shows that the server has 32 processors with the model shown below.
+{\tt \small
+\begin{verbatim}
+Intel(R) Xeon(R) CPU E5-2640 v2 @ 2.00GHz
+\end{verbatim}
+}
+The file \texttt{/proc/meminfo} shows that the server has 65.7 GB of memory.
+
+\section{Testing of Various State Implementations}
+For each class Synchronized, Unsynchronized, GetNSet, and BetterSafe, measure and characterize the class's performance and reliability.
+
+Compare the classes' reliability and performance to each other. Does any class seem to be the best choice for GDI's applications?
+
+For each of the four packages and classes listed above, explain the pros and cons of using that package or class to implementing BetterSafe. Explain why you chose the packages and classes that you used.
+
+Explain why your BetterSafe implementation is faster than Synchronized and why it is still 100\% reliable. Characterize your implementation's basic idea using terminology taken from Lea's paper.
+
+Discuss any problems you had to overcome to do your measurements properly. Explain whether and why the class is DRF; if it is not DRF (due to a bug) give a reliability test (as a shell command "java UnsafeMemory model ...") that the class is extremely likely to fail on the SEASnet GNU/Linux servers.
+
+\section{This is Another Section}
+
+\end{document}
