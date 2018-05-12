@@ -128,3 +128,8 @@ plain_tower(N, T, counts(U, D, L, R)) :-
     plain_counts_left_right(N, T, L, R),
     transpose(T, Trans),
     plain_counts_left_right(N, Trans, U, D).
+
+ambiguous(N, C, T1, T2) :-
+    tower(N, T1, C),
+    tower(N, T2, C),
+    \+(T1=T2), !.
