@@ -72,3 +72,62 @@ tower(N, T, counts(U, D, L, R)) :-
     counts_right(N, Trans, D),
     counts_right(N, TransR, U),
     fd_labeling(Vs).
+
+plain_constrain_right(_, [_], 1).
+plain_constrain_right(N, [H|T], Count) :-
+    max_list(T, M),
+    H > M,
+    plain_constrain_right(N, T, SubCount),
+    Count is SubCount+1.
+
+plain_constrain_right(N, [H|T], Count) :-
+    max_list(T, M),
+    H < M,
+    plain_constrain_right(N, T, Count).
+
+generate_domain(L, Min, Max) :-
+    findall(Num, between(Min, Max, Num), L).
+
+all_different([]).
+all_different([_]).
+all_different([F,S|T]) :-
+    \+(F=S),
+    all_different([F|T]),
+    all_different([S|T]).
+
+generate_unique_list_domain([], _, _).
+generate_unique_list_domain([H|T], Min, Max) :-
+    generate_unique_list_domain(T, Min, Max),
+    generate_domain(Dom, Min, Max),
+    member(H, Dom),
+    all_different([H|T]).
+
+plain_visible_left_right(N, R, LCount, RCount) :-
+    length(R, N),
+    generate_unique_list_domain(R, 1, N),
+    generate_domain(Dom, 1, N),
+    member(RCount, Dom),
+    plain_constrain_right(N, R, RCount),
+    member(LCount, Dom),
+    reverse(R, Rev),
+    plain_constrain_right(N, Rev, LCount).
+
+plain_counts_left_right(_, _, [], [], []).
+plain_counts_left_right(N, Rows, [H|T], [LC|LR], [RC|RR]) :-
+    length([H|T], Rows),
+    length([LC|LR], Rows),
+    length([RC|RR], Rows),
+    SubRows is Rows-1,
+    plain_visible_left_right(N, H, LC, RC),
+    plain_counts_left_right(N, SubRows, T, LR, RR).
+
+plain_counts_left_right(N, B, LCounts, RCounts) :-
+    length(B, N),
+    length(LCounts, N),
+    length(RCounts, N),
+    plain_counts_left_right(N, N, B, LCounts, RCounts).
+
+plain_tower(N, T, counts(U, D, L, R)) :-
+    plain_counts_left_right(N, T, L, R),
+    transpose(T, Trans),
+    plain_counts_left_right(N, Trans, U, D).
