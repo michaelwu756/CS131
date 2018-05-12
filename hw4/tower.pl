@@ -114,9 +114,6 @@ plain_visible_left_right(N, R, LCount, RCount) :-
 
 plain_counts_left_right(_, _, [], [], []).
 plain_counts_left_right(N, Rows, [H|T], [LC|LR], [RC|RR]) :-
-    length([H|T], Rows),
-    length([LC|LR], Rows),
-    length([RC|RR], Rows),
     SubRows is Rows-1,
     plain_visible_left_right(N, H, LC, RC),
     plain_counts_left_right(N, SubRows, T, LR, RR).
