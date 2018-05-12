@@ -90,7 +90,7 @@ generate_domain(L, Min, Max) :-
 
 all_different([]).
 all_different([_]).
-all_different([F,S|T]) :-
+all_different([F, S|T]) :-
     \+(F=S),
     all_different([F|T]),
     all_different([S|T]).
@@ -128,6 +128,22 @@ plain_tower(N, T, counts(U, D, L, R)) :-
     plain_counts_left_right(N, T, L, R),
     transpose(T, Trans),
     plain_counts_left_right(N, Trans, U, D).
+
+speedup(S) :-
+    statistics(_, _),
+    tower(4, _,
+          counts([_, 2, _, _],
+                 [3, _, _, _],
+                 [_, 2, _, 3],
+                 [_, _, 3, _])),
+    statistics(user_time, [_, TTime]),
+    plain_tower(4, _,
+                counts([_, 2, _, _],
+                       [3, _, _, _],
+                       [_, 2, _, 3],
+                       [_, _, 3, _])),
+    statistics(user_time, [_, PTTime]),
+    S is PTTime/TTime, !.
 
 ambiguous(N, C, T1, T2) :-
     tower(N, T1, C),

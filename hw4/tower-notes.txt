@@ -1,0 +1,89 @@
+When writing plain_tower, I used the following queries as my test cases.
+
+?- tower(4, T,
+        counts([Top1, 2, Top3, Top4],
+               [3, Bot2, Bot3, Bot4],
+               [Left1, 2, Left3, 3],
+               [Right1, Right2, 3, Right4])).
+
+?- plain_tower(4, T,
+        counts([Top1, 2, Top3, Top4],
+               [3, Bot2, Bot3, Bot4],
+               [Left1, 2, Left3, 3],
+               [Right1, Right2, 3, Right4])).
+
+Running the test cases gave the following solution for both.
+
+Bot2 = 2
+Bot3 = 1
+Bot4 = 3
+Left1 = 1
+Left3 = 2
+Right1 = 2
+Right2 = 1
+Right4 = 2
+T = [[4,2,1,3],[3,1,2,4],[1,4,3,2],[2,3,4,1]]
+Top1 = 1
+Top3 = 4
+Top4 = 2
+
+I got the following statistics when running the test cases by hand.
+
+tower - full search
+Times             since last
+user   time       0.010 sec
+system time       0.000 sec
+cpu    time       0.010 sec
+
+tower - stop on first match
+Times             since last
+user   time       0.002 sec
+system time       0.001 sec
+cpu    time       0.003 sec
+
+plain_tower - full search
+Times             since last
+user   time       0.779 sec
+system time       0.002 sec
+cpu    time       0.781 sec
+
+plain_tower - stop on first match
+Times             since last
+user   time       0.404 sec
+system time       0.001 sec
+cpu    time       0.405 sec
+
+After writing the speedup/1 predicate, I tested with
+
+?- speedup(S).
+
+and got
+
+S = 200.0
+
+which matches the times I got when running by hand.
+
+Next I implemented ambiguous/4, and tested increasing sized boards to see if
+there were any ambiguous puzzles. The smallest size ambiguous puzzle is a 4x4
+puzzle. Running the following query
+
+?- ambiguous(4, C, T1, T2).
+
+yields the following ambiguous puzzle.
+
+C = counts([1,2,2,3],
+           [3,2,2,1],
+           [1,2,2,4],
+           [4,2,2,1])
+
+which has the two solutions shown below.
+
+T1 = [[4,3,2,1],
+      [2,4,1,3],
+      [3,1,4,2],
+      [1,2,3,4]]
+
+T2 = [[4,3,2,1],
+      [2,1,4,3],
+      [3,4,1,2],
+      [1,2,3,4]]
