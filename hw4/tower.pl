@@ -57,6 +57,7 @@ counts_right(N, [H|T], [C|R]) :-
     visible_right(N, H, C),
     counts_right(N, T, R).
 
+tower(0, [], counts([], [], [], [])).
 tower(N, T, counts(U, D, L, R)) :-
     length(T, N),
     maplist(same_length(T), T),
