@@ -124,5 +124,38 @@
 (define (expr-compare x y)
   (expr-compare-bindings x y '()))
 
-(define test-expr-x '(a 3 #f #t (quote a) (quote a) (1) (let ((a 1) (b 2)) (list a b (quote a) (if a b)))))
-(define test-expr-y '(a 2 #t #f (quote b) (quote a) (1 2) (let ((a 1) (c (lambda (a) b))) (list a c (quote a) (if a b)))))
+(define (test-expr-compare x y)
+  (and (equal? (eval x) (eval `(let ((% #t)) ,(expr-compare x y))))
+       (equal? (eval y) (eval `(let ((% #f)) ,(expr-compare x y))))))
+
+(define test-expr-x
+  '(list #t #t #f #f 3 4
+         (list "a" "b")
+         (list 'a)
+         '(a b)
+         (if 0 5 4)
+         (let ((a 3) (b 2)) (+ a b))
+         (((lambda (f)
+             ((lambda (x)
+                (x x))
+              (lambda (h)
+                (f (lambda (a) ((h h) a))))))
+           (lambda (f)
+             (lambda (n)
+               (if (= n 0) 1 (* n (f (- n 1))))))) 10)))
+
+(define test-expr-y
+  '(list #t #f #t #f 4 4
+         (list "a" "b" 'c)
+         (list 'a)
+         '(a c)
+         (+ 0 5 4)
+         (let ((a 3) (c 4)) (/ c a))
+         (((lambda (f)
+             ((lambda (z)
+                (z z))
+              (lambda (t)
+                (f (lambda (arg) ((t t) arg))))))
+           (lambda (f)
+             (lambda (n)
+               (if (< n 2) 1 (+ (f (- n 1)) (f (- n 2))))))) 4)))
