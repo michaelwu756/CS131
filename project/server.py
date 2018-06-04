@@ -6,6 +6,8 @@ import socket
 import logging
 import time
 import re
+import urllib.request
+import json
 
 def get_coordinates(s):
     match = re.search(r"(?P<latitude>[+-][0-9]{2}(\.[0-9]+)?)(?P<longitude>[+-][0-9]{3}(\.[0-9]+)?)", s)
@@ -52,11 +54,21 @@ async def process_string(s):
         elif (len(splitted) == 4 and
               splitted[0] == "WHATSAT" and
               splitted[1] in clients and
-              int(splitted[2])<=50 and
-              int(splitted[2])>0 and
+              float(splitted[2])<=50 and
+              float(splitted[2])>0 and
               int(splitted[3])<=20 and
               int(splitted[3])>0):
-            return "AT " + clients[splitted[1]][0] + " " + clients[splitted[1]][1] + " " + splitted[1] + " " + clients[splitted[1]][2] + " " + str(clients[splitted[1]][3])
+            url = ("https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+                   "?key=AIzaSyC679zLA94MgQ9xF0NiyxqYA4lt4HIDInM"
+                   "&location={},{}&radius={}").format(*get_coordinates(clients[splitted[1]][2]), float(splitted[2]))
+            response = json.load(urllib.request.urlopen(url))
+            response["results"] = response["results"][int(splitted[3]):]
+            return ("AT " + clients[splitted[1]][0] + " "
+                    + clients[splitted[1]][1] + " "
+                    + splitted[1] + " "
+                    + clients[splitted[1]][2] + " "
+                    + str(clients[splitted[1]][3]) + "\n"
+                    + json.dumps(response, indent=3, separators=(',', ' : ')))
     except Exception as ex:
         logging.exception("Failed Parsing Input")
     return "? " + s.strip()

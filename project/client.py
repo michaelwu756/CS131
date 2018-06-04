@@ -18,7 +18,8 @@ async def tcp_echo_client(server_name, loop):
         writer.write((message).encode())
 
         data = await reader.readuntil(separator = b"\n\n")
-        print("Client from %s - Received: %r" % (server_name, data.decode()))
+        print("Client from %s - Received:" % server_name)
+        print(data.decode())
         print(">", end = "", flush = True)
 
     print("Client - Close the socket")
