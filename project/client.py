@@ -2,14 +2,14 @@ import asyncio
 import sys
 import time
 
-async def tcp_echo_client(message, loop):
+async def tcp_echo_client(message, server_name, loop):
     reader, writer = await asyncio.open_connection('127.0.0.1', 12125+serverNames.index(name), loop=loop)
 
-    print('Client - Send: %r' % message)
+    print('Client to %s - Send: %r' % (server_name, message))
     writer.write(message.encode())
 
     data = await reader.read(100)
-    print('Client - Received: %r' % data.decode())
+    print('Client from %s - Received: %r' % (server_name, data.decode()))
 
     print('Client - Close the socket')
     writer.close()
@@ -24,5 +24,5 @@ else:
     name = sys.argv[1]
     message = "IAMAT kiwi.cs.ucla.edu +34.068930-118.445127 "+str(time.time())
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tcp_echo_client(message, loop))
+    loop.run_until_complete(tcp_echo_client(message, name, loop))
     loop.close()
