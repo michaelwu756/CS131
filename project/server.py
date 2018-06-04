@@ -5,6 +5,21 @@ import sys
 import socket
 import logging
 import time
+import re
+
+def get_coordinates(s):
+    match = re.search(r"(?P<latitude>[+-][0-9]{2}(\.[0-9]+)?)(?P<longitude>[+-][0-9]{3}(\.[0-9]+)?)", s)
+    return (match.group("latitude"), match.group("longitude"))
+
+def validate_coordinates(s):
+    match = re.search(r"(?P<latitude>[+-][0-9]{2}(\.[0-9]+)?)(?P<longitude>[+-][0-9]{3}(\.[0-9]+)?)", s)
+    if (match and
+        float(match.group("latitude")) <= 90 and
+        float(match.group("latitude")) >= -90 and
+        float(match.group("longitude")) <= 180 and
+        float(match.group("longitude")) >= -180):
+        return True
+    return False
 
 async def print_and_log(s):
     print(s)
@@ -24,7 +39,7 @@ async def send_message(message, other_name, loop):
 async def process_string(s):
     splitted = s.split()
     try:
-        if len(splitted) == 4 and splitted[0] == "IAMAT":
+        if len(splitted) == 4 and splitted[0] == "IAMAT" and validate_coordinates(splitted[2]):
             timeDiff = time.time() - float(splitted[3])
             prefix = ""
             if timeDiff > 0:
@@ -34,8 +49,14 @@ async def process_string(s):
         elif len(splitted) == 7 and splitted[0] == "PROPAGATE":
             await propagate(*splitted[1:])
             return ""
-        elif len(splitted) == 4 and splitted[0] == "WHATSAT":
-            return "RECIEVED WHATSAT"
+        elif (len(splitted) == 4 and
+              splitted[0] == "WHATSAT" and
+              splitted[1] in clients and
+              int(splitted[2])<=50 and
+              int(splitted[2])>0 and
+              int(splitted[3])<=20 and
+              int(splitted[3])>0):
+            return "AT " + clients[splitted[1]][0] + " " + clients[splitted[1]][1] + " " + splitted[1] + " " + clients[splitted[1]][2] + " " + str(clients[splitted[1]][3])
     except Exception as ex:
         logging.exception("Failed Parsing Input")
     return "? " + s
@@ -92,11 +113,11 @@ else:
 
     loop = asyncio.get_event_loop()
 
-    coroutine = asyncio.start_server(on_input, '0.0.0.0', port, loop = loop)
+    coroutine = asyncio.start_server(on_input, "0.0.0.0", port, loop = loop)
     server = loop.run_until_complete(coroutine)
 
     # Serve requests until Ctrl+C is pressed
-    print('Serving on {}'.format(server.sockets[0].getsockname()))
+    print("Serving on {}".format(server.sockets[0].getsockname()))
     try:
         loop.run_forever()
     except KeyboardInterrupt:
