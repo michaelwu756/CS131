@@ -60,9 +60,9 @@ async def process_string(s):
               int(splitted[3])>0):
             url = ("https://maps.googleapis.com/maps/api/place/nearbysearch/json"
                    "?key=AIzaSyC679zLA94MgQ9xF0NiyxqYA4lt4HIDInM"
-                   "&location={},{}&radius={}").format(*get_coordinates(clients[splitted[1]][2]), float(splitted[2]))
+                   "&location={},{}&radius={}").format(*get_coordinates(clients[splitted[1]][2]), float(splitted[2])*1000)
             response = json.load(urllib.request.urlopen(url))
-            response["results"] = response["results"][int(splitted[3]):]
+            response["results"] = response["results"][:int(splitted[3])]
             return ("AT " + clients[splitted[1]][0] + " "
                     + clients[splitted[1]][1] + " "
                     + splitted[1] + " "
