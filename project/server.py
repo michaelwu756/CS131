@@ -3,20 +3,22 @@
 import asyncio
 import sys
 import socket
+import logging
+import time
 
 async def process_string(s):
     splitted = s.split()
     try:
         if len(splitted)==4 and splitted[0]=="IAMAT":
-            timeDiff = time.time()-int(splitted[3])
+            timeDiff = time.time()-float(splitted[3])
             prefix = ""
-            if timediff>0:
+            if timeDiff>0:
                 prefix = "+"
             return "AT "+name+" "+prefix+str(timeDiff)+" "+splitted[1]+" "+splitted[2]+" "+splitted[3]
         elif len(splitted)==4 and splitted[0]=="WHATSAT":
             return "RECIEVED WHATSAT"
-    except:
-        pass
+    except Exception as ex:
+        logging.exception("Failed Parsing Input")
     return "? "+s
 
 async def on_input(reader, writer):
@@ -30,8 +32,8 @@ async def on_input(reader, writer):
     writer.write(str.encode(returnMessage))
     await writer.drain()
 
-    #print("%s - Close the client socket" % name)
-    #writer.close()
+    print("%s - Close the client socket" % name)
+    writer.close()
 
 serverNames = ["Goloman", "Hands", "Holiday", "Welsh", "Wilkes"]
 
