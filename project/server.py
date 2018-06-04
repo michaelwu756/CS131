@@ -6,13 +6,19 @@ import socket
 import logging
 import time
 
+async def print_and_log(s):
+    print(s)
+    logFile = open(name+".log", "a+")
+    print(s, file=logFile)
+    logFile.close()
+
 async def send_message(message, other_name, loop):
     reader, writer = await asyncio.open_connection('127.0.0.1', 12125+serverNames.index(other_name), loop=loop)
 
-    print('%s to %s - Send: %r' % (name, other_name, message))
+    await print_and_log('%s to %s - Send: %r' % (name, other_name, message))
     writer.write(message.encode())
 
-    print('%s to %s - Close the socket' % (name, other_name))
+    await print_and_log('%s to %s - Close the socket' % (name, other_name))
     writer.close()
 
 async def process_string(s):
@@ -23,9 +29,9 @@ async def process_string(s):
             prefix = ""
             if timeDiff>0:
                 prefix = "+"
-            await propagate("",*splitted[1:])
+            await propagate("", name, prefix+str(timeDiff), *splitted[1:])
             return "AT "+name+" "+prefix+str(timeDiff)+" "+splitted[1]+" "+splitted[2]+" "+splitted[3]
-        elif len(splitted)==5 and splitted[0]=="PROPAGATE":
+        elif len(splitted)==7 and splitted[0]=="PROPAGATE":
             await propagate(*splitted[1:])
             return ""
         elif len(splitted)==4 and splitted[0]=="WHATSAT":
@@ -38,28 +44,28 @@ async def on_input(reader, writer):
     data = await reader.read(100)
     message = data.decode()
     addr = writer.get_extra_info('peername')
-    print("%s - Received %r from %r" % (name, message, addr))
+    await print_and_log("%s - Received %r from %r" % (name, message, addr))
 
     returnMessage = await process_string(message)
     if returnMessage!="":
-        print("%s - Send: %r" % (name,returnMessage))
+        await print_and_log("%s - Send: %r" % (name,returnMessage))
         writer.write(str.encode(returnMessage))
         await writer.drain()
 
-    print("%s - Close the client socket" % name)
+    await print_and_log("%s - Close the client socket" % name)
     writer.close()
 
-async def propagate(src, n, loc, t):
-    if n not in clients or float(t)>clients[n][1]:
-        clients[n] = (loc, float(t))
+async def propagate(from_server, origin, timeDiff, n, loc, t):
+    if n not in clients or float(t)>clients[n][3]:
+        clients[n] = (origin, timeDiff, loc, float(t))
         for other in talksWith:
             try:
-                if other!=src:
-                    await send_message("PROPAGATE "+name+" "+n+" "+loc+" "+t, other, loop=loop)
+                if other!=from_server:
+                    await send_message("PROPAGATE "+name+" "+origin+" "+timeDiff+" "+n+" "+loc+" "+t, other, loop=loop)
             except ConnectionRefusedError:
-                print("%s - Could not connect to %s" % (name, other))
+                await print_and_log("%s - Could not connect to %s" % (name, other))
     else:
-        print("%s - Old information: %s %s %s" % (name, n, loc, t))
+        await print_and_log("%s - Old information: %s %s %s %s %s" % (name, origin, timeDiff, n, loc, t))
 
 serverNames = ["Goloman", "Hands", "Holiday", "Welsh", "Wilkes"]
 
@@ -75,7 +81,7 @@ else:
     if name=="Goloman":
         talksWith = ["Hands", "Holiday", "Wilkes"]
     elif name=="Hands":
-        talksWith = ["Goloman",  "Wilkes"]
+        talksWith = ["Goloman", "Wilkes"]
     elif name=="Holiday":
         talksWith = ["Goloman", "Welsh", "Wilkes"]
     elif name=="Welsh":

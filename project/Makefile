@@ -12,4 +12,7 @@ Goloman Hands Holiday Welsh Wilkes: server.py
 pingGoloman pingHands pingHoliday pingWelsh pingWilkes: client.py
 	$(CLIENT) $(@:ping%=%)
 
-.PHONY: Goloman Hands Holiday Welsh Wilkes pingGoloman pingHands pingHoliday pingWelsh pingWilkes startServers stopServers
+clean:
+	rm -rf *.log
+
+.PHONY: Goloman Hands Holiday Welsh Wilkes pingGoloman pingHands pingHoliday pingWelsh pingWilkes startServers stopServers clean
