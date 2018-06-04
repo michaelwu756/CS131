@@ -41,16 +41,17 @@ async def process_string(s):
     return "? " + s
 
 async def on_input(reader, writer):
-    data = await reader.read(100)
-    message = data.decode()
-    addr = writer.get_extra_info("peername")
-    await print_and_log("%s - Received %r from %r" % (name, message, addr))
+    while not reader.at_eof():
+        data = await reader.readline()
+        message = data.decode()
+        addr = writer.get_extra_info("peername")
+        await print_and_log("%s - Received %r from %r" % (name, message, addr))
 
-    returnMessage = await process_string(message)
-    if returnMessage != "":
-        await print_and_log("%s - Send: %r" % (name, returnMessage))
-        writer.write(str.encode(returnMessage))
-        await writer.drain()
+        returnMessage = await process_string(message)
+        if returnMessage != "":
+            await print_and_log("%s - Send: %r" % (name, returnMessage))
+            writer.write(returnMessage.encode())
+            await writer.drain()
 
     await print_and_log("%s - Close the client socket" % name)
     writer.close()
