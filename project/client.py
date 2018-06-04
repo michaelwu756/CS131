@@ -2,15 +2,24 @@ import asyncio
 import sys
 import time
 
-async def tcp_echo_client(message, server_name, loop):
+async def tcp_echo_client(server_name, loop):
     reader, writer = await asyncio.open_connection("127.0.0.1", 12125 + serverNames.index(name), loop = loop)
 
-    print("Client to %s - Send: %r" % (server_name, message))
-    writer.write((message).encode())
-    writer.write_eof()
+    print(">", end = "", flush = True)
+    for line in sys.stdin:
+        message = line
+        try:
+            if line.split()[0] == "IAMAT":
+                message = message.strip() + " " + str(time.time()) + "\n"
+        except:
+            pass
 
-    data = await reader.readline()
-    print("Client from %s - Received: %r" % (server_name, data.decode()))
+        print("Client to %s - Send: %r" % (server_name, message))
+        writer.write((message).encode())
+
+        data = await reader.readuntil(separator = b"\n\n")
+        print("Client from %s - Received: %r" % (server_name, data.decode()))
+        print(">", end = "", flush = True)
 
     print("Client - Close the socket")
     writer.close()
@@ -23,7 +32,9 @@ elif sys.argv[1] not in serverNames:
     print(sys.argv[1] + " is not a valid server name. Valid names are: " + ", ".join(str(x) for x in serverNames))
 else:
     name = sys.argv[1]
-    message = "IAMAT kiwi.cs.ucla.edu +34.068930-118.445127 " + str(time.time())
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(tcp_echo_client(message, name, loop))
+    try:
+        loop.run_until_complete(tcp_echo_client(name, loop))
+    except KeyboardInterrupt:
+        pass
     loop.close()

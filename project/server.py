@@ -59,7 +59,7 @@ async def process_string(s):
             return "AT " + clients[splitted[1]][0] + " " + clients[splitted[1]][1] + " " + splitted[1] + " " + clients[splitted[1]][2] + " " + str(clients[splitted[1]][3])
     except Exception as ex:
         logging.exception("Failed Parsing Input")
-    return "? " + s
+    return "? " + s.strip()
 
 async def on_input(reader, writer):
     while not reader.at_eof():
@@ -68,7 +68,7 @@ async def on_input(reader, writer):
         addr = writer.get_extra_info("peername")
         await print_and_log("%s - Received %r from %r" % (name, message, addr))
 
-        returnMessage = await process_string(message)
+        returnMessage = await process_string(message) + "\n\n"
         if returnMessage != "":
             await print_and_log("%s - Send: %r" % (name, returnMessage))
             writer.write(returnMessage.encode())
