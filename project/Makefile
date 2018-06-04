@@ -15,4 +15,7 @@ pingGoloman pingHands pingHoliday pingWelsh pingWilkes: client.py
 clean:
 	rm -rf *.log
 
+project.tgz: server.py client.py Makefile readme.txt
+	tar -czf $@ $^
+
 .PHONY: Goloman Hands Holiday Welsh Wilkes pingGoloman pingHands pingHoliday pingWelsh pingWilkes startServers stopServers clean
