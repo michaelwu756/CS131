@@ -81,7 +81,7 @@ async def on_input(reader, writer):
         await print_and_log("%s - Received %r from %r" % (name, message, addr))
 
         returnMessage = await process_string(message) + "\n\n"
-        if returnMessage != "":
+        if returnMessage != "\n\n":
             await print_and_log("%s - Send: %r" % (name, returnMessage))
             writer.write(returnMessage.encode())
             await writer.drain()
