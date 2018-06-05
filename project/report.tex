@@ -1,0 +1,141 @@
+\documentclass[letterpaper,twocolumn,10pt]{article}
+\usepackage[colorlinks=true,linkcolor=black]{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\usepackage{varwidth}
+\begin{document}
+\title{\Large \bf Computer Science 131, Project Report}
+\author{Michael Wu\\UID:404751542}
+\date{June 4th, 2018}
+\maketitle
+
+\section{Abstract}
+
+\section{Introduction}
+
+In this project I investigated the possibility of implementing a server architecture using Python's
+\texttt{asyncio} library. This library supports event-loop driven concurrency and allows for servers
+to handle asynchronous events. The server architecture consists of multiple nodes that are connected
+as a network. Clients connect to a particular node and can either broadcast their location or query for
+locations near other clients. The servers handle these client requests by propagating clients' location
+information throughout the server network.
+
+I implemented a prototype server network with \texttt{asyncio} to evaluate how easy it is to work with
+the library, how maintainable Python is compared to other languages such as Java or javascript, and whether
+or not Python can fit in with existing sofware.
+
+\section{Implementation with \texttt{asyncio}}
+
+The core of my server application, whose source code can be found in the attached \texttt{project.tgz}, is a single
+file named \texttt{server.py}. This application starts a server to accept incoming TCP connections, then runs an event loop
+until it recieves an interrupt. The server contains a callback method on each new connection. The callback is passed
+a reader and a writer that allows for the server to communicate with each new client.
+
+The reader and writer are a part of the \texttt{asyncio} library, so they must be used inside a function that has
+the \texttt{async def} syntax. Inside a function declared with \texttt{async}, we can use the \texttt{await} keyword
+on a statement to indicate that it is asynchronous and can block. If execution blocks on a statement declared with
+\texttt{await}, the program can switch to another task. This allows for concurrency because different connections
+can be served while the application waits for a client's input.
+
+\subsection{Server Commands}
+
+The default behaviour of the server on input is to echo back the input of the client with a question mark prepended.
+This indicates that the client input was invalid. But when the client inputs an \texttt{IAMAT} or \texttt{WHATSAT} command,
+the server processes it and responds appropriately.
+
+The \texttt{IAMAT} command is used to inform the server of the client's location, along with a timestamp. Upon recieving
+a valid \texttt{IAMAT} command, the server must update the stored location of the client if the previous location's timestamp
+is older than the input timestamp. After updating the client location locally, a server must propagate the update to its
+neighbors. Each server stores the ports associated with its neighbors in the server network. In the prototype, the ports begin
+at 12125 and go up to 12129. These are mapped to the five named servers that can be started. Their names are \texttt{Goloman},
+\texttt{Hands}, \texttt{Holiday}, \texttt{Welsh}, and \texttt{Wilkes}.
+
+The \texttt{WHATSAT} command is used to query a server for places around a given client's coordinates. Procesing a \texttt{WHATSAT}
+command is much simpler than a \texttt{IAMAT} command, as the server simply checks to see if it knows the given client's coordinates and
+then issues a HTTP request to the Google Places web API to retrieve the places around the client. This does not require any propagation.
+The server returns a response in a JSON format.
+
+\subsection{Propagation}
+
+A server propagates updates to its neighbors by connecting to a neighbor through TCP. It then issues a \texttt{PROPAGATE}
+command to the neighbor which contains the update information, and then closes the connection. The neighbor server will treat
+the incoming connection like any other client connection, and does not know that a \texttt{PROPAGATE} will occur until the
+command has been sent. In this way, no server knows about the status of any other server in the network until a propagation
+occurs. If no connection can be made, the source server will simply assume that the recieving server is offline and will continue
+execution as normal. If a \texttt{PROPAGATE} can be sent successfully and the recieving server has not already seen a newer update,
+the recieving server will try to \texttt{PROPAGATE} to its own neighbors, excluding the source server. This allows the update to travel
+through the entire server network.
+
+The servers also log their inputs and outputs into a logfile. A sample execution with propagation is shown in figure~\ref{goloman}.
+The server first recieves input from a client, then it propagates the update its neighbors. It then replies to the client with a \texttt{AT}
+message. The old \texttt{PROPAGATE} that \texttt{Goloman} recieves is ignored because it already has been recorded on the server.
+Note that the server treats the incoming propagate from \texttt{Wilkes} as just another client connection, and closes the connection
+to \texttt{Wilkes} after the \texttt{PROPAGATE} occurs. It keeps the original client connection at \texttt{(`149.142.26.148', 59509)} alive.
+
+\begin{figure*}[!ht]
+{\scriptsize
+\begin{verbatim}
+Goloman - Received `IAMAT kiwi.cs.ucla.edu +34.068930-118.445127 1528158363.1649215\n' from (`149.142.26.148', 59509)
+Goloman to Hands - Send: `PROPAGATE Goloman Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127
+1528158363.1649215'
+Goloman to Hands - Close the socket
+Goloman to Holiday - Send: `PROPAGATE Goloman Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127
+1528158363.1649215'
+Goloman to Holiday - Close the socket
+Goloman to Wilkes - Send: `PROPAGATE Goloman Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127
+1528158363.1649215'
+Goloman to Wilkes - Close the socket
+Goloman - Send: `AT Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127 1528158363.1649215\n\n'
+Goloman - Received `PROPAGATE Wilkes Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127 1528158363.1649215'
+from (`127.0.0.1', 33056)
+Goloman - Old information: Goloman +0.657886266708374 kiwi.cs.ucla.edu +34.068930-118.445127 1528158363.1649215
+Goloman - Close the client socket
+\end{verbatim}
+}
+\caption{The log for \texttt{Goloman}.}
+\label{goloman}
+\end{figure*}
+
+More detailed documentation about the format of the \texttt{IAMAT}, \texttt{WHATSAT}, and \texttt{PROPAGATE} commands can be found in the
+attached \texttt{readme.txt} located in \texttt{project.tgz}.
+
+\section{Design Concerns}
+
+\subsection{Type Checking}
+
+When implementing this server, I had to validate the arguments of the \texttt{IAMAT} and \texttt{WHATSAT} commands. This was
+troublesome in Python because the language uses dynamic type checking. To get around this, I used duck typing and assumed that
+an input would be in the valid format when dealing with integers and floats. If the inputs were correct, my program would execute
+as intended. If an input was in the wrong format, I would catch the exception that occured and instead execute the code that handles
+invalid inputs. In the end this programming paradigm can work, but it leads to harder to catch errors during development. Type mismatches
+in the code can only be checked at runtime rather than at compile time, which adds overhead to debugging. However, an advantage of
+this dynamic type checking is that it leads to faster code writing. I can focus on the logic of my code rather than worrying about
+verifying the type of data that is being passed around. Dynamic type checking leads to less verbosity in the code.
+
+One situation where the Python's dynamic type checking did not help was when I had to validate the coordinate inputs. In this case,
+I had to write my own function to verify if the argument was in a valid format. I used regex to extract the longitude and latitude, then
+cast them to floats in order to check their ranges. Because this forced me to think about the types that I was dealing with, Python
+offers no advantage over a statically typed language in this case.
+
+\subsection{Memory Management}
+
+\subsection{Multithreading}
+
+\subsection{Comparison to Node and Java}
+
+\section{Recommendations}
+
+\section{Conclusions}
+
+\begin{thebibliography}{9}
+        \bibitem{pythondocs}
+        Python 3.6.5 asyncio documentation. \url{docs.python.org/3/library/asyncio.html}.
+
+        \bibitem{javadocs}
+        Java Socket Tutorials. \url{docs.oracle.com/javase/tutorial/networking/sockets/readingWriting.html}.
+
+        \bibitem{beazley}
+        \url{www.usenix.org/system/files/login/articles/09_beazley.pdf}.
+\end{thebibliography}
+
+\end{document}
