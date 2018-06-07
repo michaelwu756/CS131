@@ -34,7 +34,7 @@ our application, as Java was created for this type of programming.
 If we were to reimplement our entire server architecture on this platform, we would also be able to do event-loop driven programming using a library
 such as Netty~\cite{nettydocs}. Because Java is compiled into bytecode, it will most likely outperform an interpreted language such as Python. However,
 both are still relatively high level and would be outperformed by languages such as C\texttt{++}. Thankfully the JNI allows the Java API to use
-some C\texttt{++} functions, which would increase the library's performance. 
+some C\texttt{++} functions, which would increase the library's performance.
 
 \section{OCaml}
 
@@ -56,7 +56,7 @@ is possible, but it is inelegant.
 Vala is a high level object-oriented language that is used to generate C code, allowing for fast coding while maintaining performance.
 It includes support for interfaces, lambda expressions, type inference, generics, and exception handling~\cite{valaabout}. It is mainly used to write
 graphical applications for GNOME, a Linux GUI environment. Vala can integrate easily with existing C libraries, which makes it a good candidate
-for our server application. Since C is one of the most widely used general purpose programming language, this is a major plus. 
+for our server application. Since C is one of the most widely used general purpose programming language, this is a major plus.
 
 Using TensorFlow in Vala requires the use of a library that is described as ``highly experimental'' and maintained by a single contributor~\cite{valatensor}.
 It seems that these bindings do not receive a lot of support, so it may be unwise to rely on them in production code. They mostly serve as a wrapper
@@ -108,7 +108,7 @@ We should use either Vala or Java to overcome the performance bottleneck that th
 
         \bibitem{valaabout}
         About Vala. \url{wiki.gnome.org/Projects/Vala/About}.
-        
+
         \bibitem{valatensor}
         TensorFlow for Vala. \url{github.com/arrufat/tensorflow-vala}.
 \end{thebibliography}
